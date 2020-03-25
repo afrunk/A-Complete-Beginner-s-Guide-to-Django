@@ -33,27 +33,34 @@ def board_topics_2(request,pk):
     board = get_object_or_404(Board,pk=pk)
     return render(request, 'topics.html', {'board': board})
 
+# 引入我们创建的表单
+from .forms import NewTopicForm
 # 新建 topic 的函数
 def new_topic(request,pk):
     board = get_object_or_404(Board,pk=pk)
+    user = User.objects.first()
 
     if request.method =='POST':
-        subject = request.POST['subject']
-        message = request.POST['message']
+        # 如果是 POST 请求 则将请求传入表单
+        form = NewTopicForm(request.POST)
+        # 如果表单的请求是有效的 则使用 form.save() 存入数据库
+        if form.is_valid():
+            # save方法返回的一个存入数据库的 Model 实例
+            # 因为这是一个 Topic form 所以会创建一个 Topic
+            topic = form.save(commit=False)
+            topic.board=board
+            topic.starter = user
+            topic.save()
 
-        user = User.objects.first() # 临时使用一个账号作为登录用户
-
-        topic = Topic.objects.create(
-            subject = subject,
-            board = board,
-            starter= user
-        )
-
-        post = Post.objects.create(
-            message = message,
-            topic = topic,
-            created_by=user
-        )
-        # 重定向
-        return redirect('board_topics2',pk=board.pk)
-    return render(request,'new_topic.html',{'board':board})
+            post = Post.objects.create(
+                message = form.cleaned_data.get('message'),
+                topic = topic,
+                created_by=user
+            )
+            # 重定向
+            return redirect('board_topics2',pk=board.pk)
+    else:
+        form = NewTopicForm()
+    # 如果数据是无效的 ，django 会给 form 添加错误列表
+    # 然后 视图函数不会做任何处理并且原本的表单页面 并显示错误
+    return render(request,'new_topic.html',{'board':board,'form':form})
