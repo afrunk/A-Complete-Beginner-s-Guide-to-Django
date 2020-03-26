@@ -40,14 +40,17 @@ INSTALLED_APPS = [
 
     'widget_tweaks',
 
-    'boards'
+    'boards',
+    'accounts',
+
+    'password_reset'
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
+    # 'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -134,3 +137,14 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS =[
     os.path.join(BASE_DIR,'static')
 ]
+LOGIN_URL = 'login'
+
+# 重置密码邮件部分
+
+EMAIL_HOST = 'smtp.qq.com'
+EMAIL_PORT = 25   #发件箱的smtp服务器端口
+EMAIL_HOST_USER = '2226846894@qq.com' # 你的 QQ邮箱 账号
+EMAIL_HOST_PASSWORD = 'tyguxlvkngadeche'#QQ邮箱授权码
+EMAIL_USE_TLS = True # 这里必须是 True，否则发送不成功
+EMAIL_FROM = '2226846894@qq.com' # # 你的 QQ邮箱 账号
+DEFAULT_FROM_EMAIL = '2226846894@qq.com'# 你的 QQ邮箱 账号
