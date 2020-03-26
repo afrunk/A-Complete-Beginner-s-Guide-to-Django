@@ -58,4 +58,10 @@ urlpatterns = [
     path('boards/<int:pk>/',views.board_topics_2,name='board_topics2'),
     path('boards/<int:pk>/new/',views.new_topic,name='new_topic'),
     path('jsrender',views.jsrender,name='jsrender'), # jsrender 传递参数
+
+    # 回复列表路由
+    path('boards/<int:pk>/topics/<int:topic_pk>/',views.topic_posts,name='topic_posts'),
+    # 添加新的回复
+    path('boards/<int:pk>/topics/<int:topic_pk>/reply/',views.reply_topic,name='reply_topic'),
+
 ]

@@ -37,6 +37,14 @@ class Board(models.Model):
     def __str__(self):
         return self.name
 
+    # 定义两个方法 稍后在 HTML 模板中进行调用
+    def get_posts_count(self):
+        # 使用 self 是 class Board 的一个实例方法
+        return Post.objects.filter(topic__board=self).count()
+
+    def get_last_post(self):
+        return Post.objects.filter(topic__board=self).order_by('-created_at').first()
+
 # 帖子
 class Topic(models.Model):
     subject = models.CharField(max_length=255)
@@ -45,8 +53,12 @@ class Topic(models.Model):
     # 访问属于该板块下的 Topic 列表
     board =models.ForeignKey(Board,related_name='topics',on_delete=models.CASCADE)
     starter= models.ForeignKey(User,related_name='topics',on_delete=models.CASCADE)
+    views = models.PositiveIntegerField(default =0)
 
+    def __str__(self):
+        return self.subject
 # 回复
+from  django.utils.text import Truncator
 class Post(models.Model):
     message = models.TextField(max_length=4000)
     #模型之间创建一个链接，并在数据库级别创建适当的关系
@@ -61,3 +73,6 @@ class Post(models.Model):
     created_by = models.ForeignKey(User,related_name='posts',on_delete=models.CASCADE)
     # 看注释理解 related_name = '+' 的用法
     update_by = models.ForeignKey(User,null=True,related_name='+',on_delete=models.CASCADE)
+    def __str__(self):
+        truncated_message = Truncator(self.message)
+        return truncated_message.chars(30)
