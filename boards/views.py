@@ -23,12 +23,23 @@ def jsrender(request):
     })
 
 from django.db.models import Count
+from django.core.paginator import Paginator,EmptyPage,PageNotAnInteger
 # re 匹配方法
 def board_topics(request,pk):
     #pk 表示主键的意思
     board = Board.objects.get(pk=pk)
     # 回复数 直接使用 sql 语句实现回复数的统计
-    topics = board.topics.order_by('-last_updated').annotate(replies=Count('posts') - 1)
+    queryset = board.topics.order_by('-last_updated').annotate(replies = Count('posts') -1 )
+    page = request.GET.get('page',1)
+
+    paginator = Paginator(queryset,20)
+    try:
+        topics = paginator.page(page)
+    except PageNotAnInteger:
+        topics = paginator.page(1)
+    except EmptyPage:
+        topics = paginator.page(paginator.num_pages)
+
     return render(request,'topics.html',{'board':board,'topics':topics})
 
 # 适配 django2.2 的路由 path 匹配算法
@@ -97,3 +108,31 @@ def reply_topic(request,pk,topic_pk):
     else:
         form = PostForm()
     return render(request,'reply_topic.html',{'topic':topic,'form':form})
+
+# 引入额外的修饰器来避免没有权限的用户修改回复
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
+# 使用 GBCV 来创建编辑回复的视图函数
+from django.views.generic import UpdateView
+from django.utils import timezone
+# 装饰器
+@method_decorator(login_required, name='dispatch')
+class PostUpdateView(UpdateView):
+    model = Post
+    fields = ('message', )
+    template_name = 'edit_post.html'
+    pk_url_kwarg = 'post_pk'
+    context_object_name = 'post'
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        return queryset.filter(created_by=self.request.user)
+
+    def form_valid(self, form):
+        post = form.save(commit=False)
+        post.updated_by = self.request.user
+        post.updated_at = timezone.now()
+        post.save()
+        return redirect('topic_posts', pk=post.topic.board.pk, topic_pk=post.topic.pk)
+
+

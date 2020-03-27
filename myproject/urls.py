@@ -63,5 +63,8 @@ urlpatterns = [
     path('boards/<int:pk>/topics/<int:topic_pk>/',views.topic_posts,name='topic_posts'),
     # 添加新的回复
     path('boards/<int:pk>/topics/<int:topic_pk>/reply/',views.reply_topic,name='reply_topic'),
+    # 编辑回复路由
+    # 使用的 GCBV 所以引用的视图函数不一样
+    path('boards/<int:pk>/topics/<int:topic_id>/posts/<int:post_pk>/edit/',views.PostUpdateView.as_view(),name='edit_post'),
 
 ]
